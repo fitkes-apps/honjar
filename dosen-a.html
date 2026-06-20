@@ -154,8 +154,8 @@
              
             <button class="btn-nav" onclick="gantiHalaman('rekap')">📊 REKAP</button>
             
-            <!-- TOMBOL BARU: Mengarahkan langsung ke lembar kerja resmi google agar terbebas dari masalah 'Hanya Lihat' -->
-            <button class="btn-nav btn-akses-edit" onclick="bukaEditorSpreadsheet()">✏️ MODE EDIT</button>
+            <!-- Mengubah tombol MODE EDIT agar me-refresh iframe ke link edit murni dalam portal -->
+            <button class="btn-nav btn-akses-edit" onclick="gantiHalaman('rekap')">✏️ MODE EDIT</button>
             
             <button class="btn-nav btn-excel" onclick="bukaModalDownload('excel')">🟢 EXCEL</button>
             <button class="btn-nav btn-pdf" onclick="bukaModalDownload('pdf')">🔴 PDF</button>
@@ -170,7 +170,8 @@
     </div>
 
     <div class="content-container">
-        <iframe id="mainFrame" src="https://docs.google.com/spreadsheets/d/1AV5dvJHzukHs2_Ly4Enm1yhTzHvFjPmj7FlzRe0nf9A/edit"></iframe>
+        <!-- Default src diarahkan ke /edit dengan parameter penunjang UI penuh -->
+        <iframe id="mainFrame" src="https://docs.google.com/spreadsheets/d/1AV5dvJHzukHs2_Ly4Enm1yhTzHvFjPmj7FlzRe0nf9A/edit?ui=2"></iframe>
     </div>
 </div>
 
@@ -250,27 +251,27 @@
         }
     }
 
+    /* PERBAIKAN UTAMA: Memaksa URL membuka editor versi penuh desktop agar bisa diketik langsung di HP */
     function gantiHalaman(tipe) {
         const frame = document.getElementById('mainFrame');
         if (tipe === 'rekap') {
             const gidDipilih = document.getElementById('pilihBulan').value;
+            const spreadsheetId = "1AV5dvJHzukHs2_Ly4Enm1yapTzHvFjPmj7FlzRe0nf9A";
+            
+            // Parameter ?ui=2 memaksa Google meloloskan interface desktop murni yang tombolnya lengkap dan selnya bisa diketik
+            let baseUrl = `https://docs.google.com/spreadsheets/d/1AV5dvJHzukHs2_Ly4Enm1yhTzHvFjPmj7FlzRe0nf9A/edit?ui=2`;
+            
             if(gidDipilih === "master") {
-                 frame.src = "https://docs.google.com/spreadsheets/d/1AV5dvJHzukHs2_Ly4Enm1yhTzHvFjPmj7FlzRe0nf9A/edit";
+                 frame.src = baseUrl;
             } else {
-                 frame.src = "https://docs.google.com/spreadsheets/d/1AV5dvJHzukHs2_Ly4Enm1yhTzHvFjPmj7FlzRe0nf9A/edit#gid=" + gidDipilih;
+                 frame.src = baseUrl + "&gid=" + gidDipilih;
             }
         }
     }
 
-    /* FUNGSI UTAMA UNTUK JALUR PINTAS EDIT LANGSUNG */
+    /* Diubah fungsinya agar tombol 'MODE EDIT' menjadi pemanis navigasi internal yang aman di dalam portal */
     function bukaEditorSpreadsheet() {
-        const gidDipilih = document.getElementById('pilihBulan').value;
-        let urlTarget = "https://docs.google.com/spreadsheets/d/1AV5dvJHzukHs2_Ly4Enm1yhTzHvFjPmj7FlzRe0nf9A/edit";
-        
-        if(gidDipilih !== "master" && gidDipilih !== "0") {
-            urlTarget += "#gid=" + gidDipilih;
-        }
-        window.open(urlTarget, '_blank');
+        gantiHalaman('rekap');
     }
 
     function bukaModalDownload(format) {
