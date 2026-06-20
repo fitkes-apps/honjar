@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal Rekap Jam Mengajar Kebidanan UNJANI</title>
+    <style>
+        /* Desain Struktur Layar Penuh Sesuai Tema Asli Anda */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            background-color: #f4f6f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        /* LAYAR KUNCI: FORM LOGIN MANUAL SPREADSHEET */
+        #login-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: #00332c; /* Hijau FITKes UNJANI */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .login-card {
+            background: #ffffff;
+            padding: 30px 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            width: 100%;
+            max-width: 340px;
+            box-sizing: border-box;
+        }
+ 
+        .login-card h2 {
+            margin: 0 0 8px 0;
+            color: #004d40;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .login-card p {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            color: #004d40;
+            margin-bottom: 5px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 11px 12px;
+            box-sizing: border-box;
+            border: 2px solid #b2dfdb;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: #004d40;
+        }
+
+        .btn-login {
+            width: 100%;
+            background-color: #004d40;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background 0.2s;
+        }
+
+        .btn-login:hover { background-color: #002520; }
+        .btn-login:disabled { background-color: #a0a0a0; cursor: not-allowed; }
+
+        #login-msg {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        /* KONTEN UTAMA PORTAL (SPREADSHEET VIEWER) */
+        .wrapper {
+            display: none; /* Sembunyi sebelum login sukses */
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .top-bar {
+            background-color: #004d40;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            z-index: 10;
+        }
+
+        .top-bar h1 {
+            margin: 0;
+            font-size: 13px;
+            font-weight: bold;
+            line-height: 1.4;
+            text-align: center;
+            letter-spacing: 0.3px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        .select-bulan {
+            background-color: #ffffff;
+            color: #004d40;
+            border: 2px solid #b2dfdb;
+            padding: 8px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            outline: none;
+            flex: 1;
+            min-width: 130px;
+            max-width: 100%;
+        }
+
+        .btn-nav {
+            background-color: #2e7d32;
+            color: white;
+            border: 1px solid #1b5e20;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            white-space: nowrap;
+            flex: 1;
+            min-width: 90px;
+            text-align: center;
+        }
+
+        .btn-nav:hover { background-color: #1b5e20; }
+        .btn-form { background-color: #0288d1; border: 1px solid #01579b; }
+        .btn-form:hover { background-color: #01579b; }
+        .btn-excel { background-color: #1f7246; border: 1px solid #134f2f; }
+        .btn-excel:hover { background-color: #134f2f; }
+        .btn-pdf { background-color: #b30b0b; border: 1px solid #7d0505; }
+        .btn-pdf:hover { background-color: #7d0505; }
+        .btn-admin { background-color: #e65100; border: 1px solid #b53f00; flex: 100%; max-width: 100%; margin-top: 2px; }
+        .btn-admin:hover { background-color: #b53f00; }
+        .btn-logout { background-color: #757575; border: 1px solid #424242; }
+        .btn-logout:hover { background-color: #424242; }
+
+        /* KONTEN UTAMA SPREADSHEET */
+        .content-container {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            background: #ffffff;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+        }
+
+        /* MODAL DOWNLOAD */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 10000;
+            justify-content: center; align-items: center;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        .modal-box {
+            background: white; padding: 25px 20px; border-radius: 8px; width: 100%; max-width: 380px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3); text-align: center; box-sizing: border-box;
+        }
+
+        .modal-box h3 { margin-top: 0; color: #004d40; font-size: 15px; border-bottom: 2px solid #b2dfdb; padding-bottom: 10px; }
+        .modal-box p { font-size: 12px; color: #555; margin-bottom: 15px; }
+        .modal-select { width: 100%; padding: 10px; font-size: 13px; font-weight: bold; border: 2px solid #004d40; border-radius: 5px; margin-bottom: 20px; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+        .btn-modal-action { padding: 10px 16px; border-radius: 5px; font-size: 12px; font-weight: bold; cursor: pointer; border: none; flex: 1; }
+        .btn-m-batal { background-color: #e0e0e0; color: #333; }
+        .btn-m-proses { background-color: #004d40; color: white; }
+
+        @media (min-width: 768px) {
+            .top-bar { flex-direction: row; justify-content: space-between; align-items: center; padding: 10px 20px; }
+            .top-bar h1 { text-align: left; font-size: 14px; }
+            .controls { width: auto; justify-content: flex-end; gap: 10px; }
+            .select-bulan { flex: none; width: 160px; }
+            .btn-nav { flex: none; width: auto; padding: 8px 15px; font-size: 12px; }
+            .btn-admin { flex: none; width: auto; margin-top: 0; background-color: #d32f2f; border: 1px solid #c62828; }
+            .btn-admin:hover { background-color: #c62828; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="login-screen">
+    <div class="login-card">
+        <h2>Sistem Keamanan</h2>
+        <p>Masukkan Kredensial Internal FITKes UNJANI untuk Mengakses Portal Rekapitulasi.</p>
+         
+        <div class="input-group">
+            <label for="txtUser">Username</label>
+            <input type="text" id="txtUser" placeholder="Masukkan username...">
+        </div>
+         
+        <div class="input-group">
+            <label for="txtPass">Password</label>
+            <input type="password" id="txtPass" placeholder="Masukkan password...">
+        </div>
+         
+        <button class="btn-login" id="btnLogin" onclick="prosesValidasiLogin()">MASUK PORTAL</button>
+        <div id="login-msg"></div>
+    </div>
+</div>
+
+<div class="wrapper" id="portal-content">
+    <div class="top-bar">
+        <div>
+            <h1>PORTAL LIVE REKAPITULASI JADWAL DOSEN KEBIDANAN (S1) - <span id="userBadge" style="color: #ffeb3b;">USER</span></h1>
+        </div>
+        <div class="controls">
+            <select id="pilihBulan" class="select-bulan" onchange="gantiHalaman('rekap')">
+                <option value="0">🗓️ Rekap Januari</option>
+                <option value="1502778114">🗓️ Rekap Februari</option>
+                <option value="2048632941">🗓️ Rekap Maret</option>
+                <option value="GANTI_DENGAN_GID_APRIL">🗓️ Rekap April</option>
+                <option value="GANTI_DENGAN_GID_MEI">🗓️ Rekap Mei</option>
+                <option value="GANTI_DENGAN_GID_JUNI">🗓️ Rekap Juni</option>
+                <option value="GANTI_DENGAN_GID_JULI">🗓️ Rekap Juli</option>
+                <option value="GANTI_DENGAN_GID_AGUSTUS">🗓️ Rekap Agustus</option>
+                <option value="GANTI_DENGAN_GID_SEPTEMBER">🗓️ Rekap September</option>
+                <option value="GANTI_DENGAN_GID_OKTOBER">🗓️ Rekap Oktober</option>
+                <option value="GANTI_DENGAN_GID_NOVEMBER">🗓️ Rekap November</option>
+                <option value="GANTI_DENGAN_GID_DESEMBER">🗓️ Rekap Desember</option>
+                <option value="master">⚙️ Data Master (Admin)</option>
+            </select>
+             
+            <button class="btn-nav" onclick="gantiHalaman('rekap')">📊 REKAP</button>
+            <button class="btn-nav btn-form" onclick="gantiHalaman('form')">📝 INPUT</button>
+             
+            <button class="btn-nav btn-excel" onclick="bukaModalDownload('excel')">🟢 EXCEL</button>
+            <button class="btn-nav btn-pdf" onclick="bukaModalDownload('pdf')">🔴 PDF</button>
+             
+            <button class="btn-nav btn-admin" onclick="buatTemplateBaruDariWeb()">➕ REKAP BARU</button>
+            <button class="btn-nav btn-logout" onclick="logoutPortal()">🚪 KELUAR</button>
+        </div>
+    </div>
+
+    <div class="content-container">
+        <iframe id="mainFrame" src="https://docs.google.com/spreadsheets/d/1AV5dvJHzukHs2_Ly4Enm1yhTzHvFjPmj7FlzRe0nf9A/edit?rm=minimal"></iframe>
+    </div>
+</div>
+
+<div id="downloadModal" class="modal-overlay">
+    <div class="modal-box">
+        <h3 id="modalTitle">Konfirmasi Unduhan</h3>
+        <p>Silakan tentukan kembali nama sheet/bulan rekapitulasi jadwal dosen yang ingin Anda download:</p>
+        <select id="modalPilihSheet" class="modal-select"></select>
+        <div class="modal-buttons">
+            <button class="btn-modal-action btn-m-batal" onclick="tutupModalDownload()">❌ BATAL</button>
+            <button class="btn-modal-action btn-m-proses" onclick="eksekusiDownload()">📥 DOWNLOAD</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // URL Web App Google Apps Script Utama Anda yang Valid
+    const urlLoginAppsScript = "https://script.google.com/macros/s/AKfycbwC89LL6WsHFfA8or0brT92AY6ds1hy44167C7GVtmz0fD1vg3UQjsYht1joYZ6MvNMnw/exec";
+    // FIX BASE URL: Diarahkan ke mode editor minimal agar sistem GID & Izin Tulis berfungsi sempurna
+    const urlSpreadsheetBase = "https://docs.google.com/spreadsheets/d/1AV5dvJHzukHs2_Ly4Enm1yhTzHvFjPmj7FlzRe0nf9A/edit?rm=minimal";
+    let formatGlobal = '';
+
+    // Otomatis Cek Sesi Saat Membuka Website
+    window.onload = function() {
+        const savedUser = localStorage.getItem('unjani_user');
+        if (savedUser) {
+            tampilkanPortal(savedUser);
+        }
+    };
+
+    // Fungsi Validasi Menggunakan Fetch Engine
+    function prosesValidasiLogin() {
+        const u = document.getElementById('txtUser').value.trim();
+        const p = document.getElementById('txtPass').value.trim();
+        const msg = document.getElementById('login-msg');
+        const btn = document.getElementById('btnLogin');
+
+        if (u === "" || p === "") {
+            msg.innerText = "Username dan Password tidak boleh kosong!";
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerText = "MEMVALIDASI...";
+        msg.style.color = "#004d40";
+        msg.innerText = "Menghubungi server Google... Mohon tunggu.";
+
+        const targetUrl = `${urlLoginAppsScript}?action=cekLogin&username=${encodeURIComponent(u)}&password=${encodeURIComponent(p)}`;
+
+        fetch(targetUrl, { method: "GET" })
+        .then(response => {
+            if (!response.ok) throw new Error("HTTP Error");
+            return response.json();
+        })
+        .then(result => {
+            btn.disabled = false;
+            btn.innerText = "MASUK PORTAL";
+
+            if (result.success === true) {
+                localStorage.setItem('unjani_user', u);
+                tampilkanPortal(u);
+            } else {
+                msg.style.color = "#d32f2f";
+                msg.innerText = result.message || "Username atau Password Salah!";
+            }
+        })
+        .catch(error => {
+            btn.disabled = false;
+            btn.innerText = "MASUK PORTAL";
+            msg.style.color = "#d32f2f";
+            msg.innerText = "Gagal terhubung. Pastikan Web App Apps Script diset ke 'Anyone'!";
+            console.error(error);
+        });
+    }
+
+    function tampilkanPortal(username) {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('portal-content').style.display = 'flex';
+        document.getElementById('userBadge').innerText = username.toUpperCase();
+        gantiHalaman('rekap');
+    }
+
+    function logoutPortal() {
+        if(confirm("Apakah Anda yakin ingin keluar?")) {
+            localStorage.clear();
+            location.reload();
+        }
+    }
+
+    // FIX NAVIGASI BULAN: Sistem penyusunan parameter url diubah agar sinkron dengan struktur Google Sheets Editor
+    function gantiHalaman(tipe) {
+        const frame = document.getElementById('mainFrame');
+        if (tipe === 'form') {
+            frame.src = "https://script.google.com/macros/s/AKfycbwC89LL6WsHFfA8or0brT92AY6ds1hy44167C7GVtmz0fD1vg3UQjsYht1joYZ6MvNMnw/exec";
+        } else if (tipe === 'rekap') {
+            const gidDipilih = document.getElementById('pilihBulan').value;
+            if(gidDipilih === "master") {
+                 frame.src = "https://docs.google.com/spreadsheets/d/1AV5dvJHzukHs2_Ly4Enm1yhTzHvFjPmj7FlzRe0nf9A/edit?rm=minimal";
+            } else {
+                 // Format URL yang benar untuk melompat antar GID sheet pada mode edit minimal
+                 frame.src = "https://docs.google.com/spreadsheets/d/1AV5dvJHzukHs2_Ly4Enm1yhTzHvFjPmj7FlzRe0nf9A/edit?rm=minimal#gid=" + gidDipilih;
+            }
+        }
+    }
+
+    // FUNGSI MODAL DOWNLOAD DAN KREASI TEMPLATE
+    function bukaModalDownload(format) {
+        formatGlobal = format;
+        const modal = document.getElementById('downloadModal');
+        const dropdownUtama = document.getElementById('pilihBulan');
+        const dropdownModal = document.getElementById('modalPilihSheet');
+        const judulModal = document.getElementById('modalTitle');
+         
+        judulModal.innerText = format === 'excel' ? "📊 UNDUH FORMAT EXCEL (.XLSX)" : "📄 UNDUH FORMAT CETAK PDF (A4)";
+        dropdownModal.innerHTML = "";
+         
+        for (let i = 0; i < dropdownUtama.options.length; i++) {
+            let opsi = dropdownUtama.options[i];
+            if (opsi.value !== "master") {
+                let entriBaru = document.createElement('option');
+                entriBaru.value = opsi.text.replace(/[^a-zA-Z0-9_ ]/g, '').replace('Rekap ', '').trim();
+                entriBaru.text = opsi.text;
+                dropdownModal.appendChild(entriBaru);
+            }
+        }
+        modal.style.display = "flex";
+    }
+
+    function tutupModalDownload() { document.getElementById('downloadModal').style.display = "none"; }
+
+    function eksekusiDownload() {
+        const sheetDipilih = document.getElementById('modalPilihSheet').value;
+        if (!sheetDipilih) return;
+        tutupModalDownload();
+        alert("Memproses file... Tautan download akan segera dibuka.");
+        
+        let urlApi = `${urlLoginAppsScript}?action=download&bulan=${encodeURIComponent(sheetDipilih)}&format=${formatGlobal}`;
+        
+        fetch(urlApi)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.url) { window.open(data.url, '_blank'); } 
+            else { alert("Gagal mendownload file."); }
+        })
+        .catch(() => alert("Gangguan jaringan saat mengunduh."));
+    }
+
+    function buatTemplateBaruDariWeb() {
+        let namaSheet = prompt("Masukkan nama untuk sheet rekap baru (Contoh: REKAP_AGUSTUS):");
+        if (!namaSheet) return;
+        alert("Sedang memproses... Mohon tunggu sebentar.");
+        
+        let urlApi = `${urlLoginAppsScript}?action=createTemplate&nama=${encodeURIComponent(namaSheet.trim())}`;
+
+        fetch(urlApi)
+        .then(res => res.json())
+        .then(data => {
+            if(data.success) {
+                alert("Sukses! Template dibuat.\nJangan lupa daftarkan GID-nya di HTML.");
+                location.reload();
+            } else { alert("Gagal: " + data.error); }
+        })
+        .catch(() => alert("Gagal terhubung ke server."));
+    }
+</script>
+</body>
+</html>

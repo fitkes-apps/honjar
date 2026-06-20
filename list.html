@@ -1,0 +1,131 @@
+<script src="<?php print_link('assets/js/script-honjar.js'); ?>"></script>
+
+<script>
+    // Pastikan fungsi berjalan setelah halaman web siap
+    document.addEventListener("DOMContentLoaded", function() {
+        // Otomatis muat data pertama kali jika elemen select bulan ditemukan
+        if (document.getElementById('pilihBulan')) {
+            gantiBulanRekap();
+            
+            // Daftarkan event listener ketika user mengubah pilihan bulan di dropdown
+            document.getElementById('pilihBulan').addEventListener('change', gantiBulanRekap);
+        }
+        
+        // Daftarkan listener untuk form submit tambah data
+        inisialisasiFormTambah();
+    });
+
+    /**
+     * 1. FUNGSI MENAMPILKAN & MENERAPKAN TEMPLATE DATA PADA TABEL
+     */
+    function gantiBulanRekap() {
+        const pilihBulanEl = document.getElementById('pilihBulan');
+        const tBody = document.getElementById('rekapTableBody');
+        
+        // Validasi pengaman jika elemen tidak ditemukan di halaman ini
+        if (!pilihBulanEl || !tBody) return; 
+
+        const bulanId = pilihBulanEl.value;
+        
+        // Tampilkan loading saat perpindahan template bulan
+        tBody.innerHTML = `<tr><td colspan="10" class="text-center" style="padding: 20px; color: #004d40;"><i class="fa fa-spinner fa-spin"></i> Menyinkronkan Template Data...</td></tr>`;
+
+        // Atur URL target Controller RadSystems Anda
+        let currentUrl = window.location.href.split('#')[0];
+        let separator = currentUrl.includes('?') ? '&' : '?';
+        let targetUrl = `${currentUrl}${separator}action=fetch_rekap&bulan_id=${bulanId}`;
+
+        fetch(targetUrl)
+        .then(res => res.json())
+        .then(data => {
+            tBody.innerHTML = ""; // Bersihkan loading
+            
+            if (!data || data.length === 0) {
+                tBody.innerHTML = `<tr><td colspan="10" class="text-center" style="color:gray; font-style:italic; padding:20px;">Belum ada rekap data pada template bulan ini.</td></tr>`;
+                return;
+            }
+
+            // Loop JS untuk menerapkan template baris data secara otomatis
+            data.forEach((row, index) => {
+                let tr = document.createElement('tr');
+                
+                // Kalkulasi Jam Mengajar otomatis jika kosong (Mirip rumus di Google Sheets)
+                let jamMengajar = row.jumlah_jam;
+                if (!jamMengajar && row.jam_mulai && row.jam_selesai) {
+                    let hitungJam = (new Date("1970-01-01 " + row.jam_selesai) - new Date("1970-01-01 " + row.jam_mulai)) / 1000 / 60 / 50;
+                    jamMengajar = Math.ceil(hitungJam); // Bulatkan ke atas
+                }
+
+                tr.innerHTML = `
+                    <td class="text-center">${index + 1}</td>
+                    <td><b>${row.nama_dosen || '-'}</b></td>
+                    <td class="text-center">${row.tanggal || '-'}</td>
+                    <td class="text-center">${row.jam_mulai || '-'}</td>
+                    <td class="text-center">${row.jam_selesai || '-'}</td>
+                    <td class="text-center" style="font-weight:bold; color:#004d40;">${jamMengajar || 0} JP</td>
+                    <td>${row.mata_kuliah || '-'}</td>
+                    <td class="text-center">${row.sks || '-'}</td>
+                    <td class="text-center">${row.metode || '-'}</td>
+                    <td class="text-center">${row.tingkat || '-'}</td>
+                `;
+                tBody.appendChild(tr);
+            });
+        })
+        .catch((err) => {
+            console.error("Error Fetch:", err);
+            tBody.innerHTML = `<tr><td colspan="10" class="text-center" style="color:red; font-weight:bold; padding:20px;">Gagal memuat struktur data template.</td></tr>`;
+        });
+    }
+
+    /**
+     * 2. FUNGSI LOGIKA SUBMIT TAMBAH DATA (AJAX VANILLA JS)
+     */
+    function inisialisasiFormTambah() {
+        // Gunakan interval kecil untuk memastikan form add.php selesai di-render oleh PHP include
+        setTimeout(() => {
+            let formNode = document.getElementById('formTambahHonjar');
+            if (formNode) {
+                formNode.addEventListener('submit', function(e) {
+                    e.preventDefault(); // Cegah reload halaman kosong
+                    
+                    let formData = new FormData(this);
+                    formData.append('action', 'simpan_honjar'); // Kirim flag action ke PHP
+
+                    // Ambil pilihan bulan aktif saat ini di list untuk disinkronkan ke data baru
+                    let bulanEl = document.getElementById('pilihBulan');
+                    if (bulanEl) {
+                        formData.append('bulan', bulanEl.value);
+                    }
+
+                    fetch(window.location.href, {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(result => {
+                        if (result.success) {
+                            alert("🟢 " + result.message);
+                            
+                            // Tutup Modal lewat JS jika elemen modal ditemukan
+                            let modalNode = document.getElementById('modalTambahData');
+                            if (modalNode) {
+                                modalNode.style.setProperty('display', 'none', 'important');
+                                // Jika menggunakan Bootstrap modal, hapus juga backdrop-nya jika macet:
+                                // document.querySelector('.modal-backdrop')?.remove();
+                            }
+                            
+                            formNode.reset(); // Reset form inputan
+                            gantiBulanRekap(); // Otomatis refresh data tabel tanpa kedip!
+                        } else {
+                            alert("❌ Gagal: " + result.message);
+                        }
+                    })
+                    .catch((err) => {
+                        console.error("Error Post:", err);
+                        alert("Terjadi kendala koneksi ke server saat menyimpan data.");
+                    });
+                });
+            }
+        }, 500);
+    }
+</script>
